@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#0d1117" />
+<!-- M2 CRM STABILITY SMOOTHNESS UPGRADE V1 -->
 <title>M2 Energy CRM — Solar + HVAC</title>
 <link rel="manifest" href="manifest.json">
 <meta name="application-name" content="M2 CRM">
@@ -5002,6 +5003,299 @@ ${c.cta||'Book a setup call to see the CRM.'}`,'Landing page text copied')}
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModals()});
   window.addEventListener('load',()=>setTimeout(renderPanels,900));
   window.m2RenderBetaReadiness=renderPanels;
+})();
+</script>
+
+
+<script>
+/* M2 SETTINGS VISIBILITY FIX v1 - makes the new settings impossible to miss */
+(function(){
+  const CARD_ID='m2-visible-settings-center';
+  const LS='m2_visible_settings_v1';
+  function toast(msg,type){ try{ if(typeof showToast==='function') showToast(msg,type); else alert(msg); }catch(e){ console.log(msg); } }
+  function esc(v){ return String(v??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function readExisting(){
+    let s={}; try{ if(typeof getSettings==='function') s=getSettings()||{}; }catch(e){}
+    let v={}; try{ v=JSON.parse(localStorage.getItem(LS)||'{}')||{}; }catch(e){}
+    return Object.assign({
+      businessName:s.businessName||s.company_name||s.company||'M2 Energy CRM',
+      ownerName:s.ownerName||s.owner_name||'',
+      supportEmail:s.supportEmail||s.support_email||'',
+      supportPhone:s.supportPhone||s.support_phone||'',
+      website:s.website||'',
+      bookingLink:s.bookingLink||s.booking_link||'',
+      mainTerritory:s.mainTerritory||s.default_territory||'',
+      defaultLeadSource:s.defaultLeadSource||'Field / Door Knock',
+      defaultAgentView:s.defaultAgentView||'Assigned Leads',
+      plan:s.plan||s.plan_tier||'Trial',
+      autoSyncReminder:!!s.autoSyncReminder,
+      backupReminder:s.backupReminder!==false,
+      showDemoTools:s.showDemoTools!==false,
+      showAdminTools:s.showAdminTools!==false
+    }, v);
+  }
+  function save(v){
+    localStorage.setItem(LS,JSON.stringify(v));
+    try{
+      if(typeof saveSettings==='function'){
+        const old=(typeof getSettings==='function'?getSettings():{})||{};
+        saveSettings(Object.assign({},old,{
+          businessName:v.businessName, company_name:v.businessName, ownerName:v.ownerName, owner_name:v.ownerName,
+          supportEmail:v.supportEmail, support_email:v.supportEmail, supportPhone:v.supportPhone, support_phone:v.supportPhone,
+          website:v.website, bookingLink:v.bookingLink, booking_link:v.bookingLink,
+          mainTerritory:v.mainTerritory, default_territory:v.mainTerritory,
+          defaultLeadSource:v.defaultLeadSource, defaultAgentView:v.defaultAgentView,
+          plan:v.plan, plan_tier:v.plan, autoSyncReminder:!!v.autoSyncReminder, backupReminder:!!v.backupReminder,
+          showDemoTools:!!v.showDemoTools, showAdminTools:!!v.showAdminTools
+        }));
+      }
+    }catch(e){ console.warn('Settings save fallback only',e); }
+  }
+  function planDetails(plan){
+    const p=String(plan||'Trial').toLowerCase();
+    if(p.includes('starter')) return '$99/mo · 3 agents · 2,500 leads';
+    if(p.includes('growth')) return '$199/mo · 10 agents · 10,000 leads';
+    if(p.includes('office')) return '$299/mo · 25 agents · 50,000 leads';
+    return 'Trial / Beta · manual setup';
+  }
+  function ensureStyles(){
+    if(document.getElementById('m2-visible-settings-style')) return;
+    const css=document.createElement('style'); css.id='m2-visible-settings-style';
+    css.textContent=`
+      #${CARD_ID}{background:linear-gradient(180deg,#101722,#0d1117);border:1px solid rgba(0,255,194,.28);box-shadow:0 18px 44px rgba(0,0,0,.35),0 0 0 1px rgba(0,255,194,.08);border-radius:22px;padding:16px;margin:14px 0;color:#f0f6fc}
+      #${CARD_ID} h3{margin:0 0 6px;font-size:19px} #${CARD_ID} p{color:#8b949e;margin:0 0 14px;font-size:13px;line-height:1.35}
+      .m2-visible-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.m2-visible-settings-grid label{display:flex;flex-direction:column;gap:6px;color:#8b949e;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.35px}.m2-visible-settings-grid input,.m2-visible-settings-grid select{background:#0d1117;border:1px solid #30363d;border-radius:13px;color:#f0f6fc;padding:11px;font-size:14px;outline:none}.m2-visible-settings-grid input:focus,.m2-visible-settings-grid select:focus{border-color:#00ffc2;box-shadow:0 0 0 3px rgba(0,255,194,.12)}
+      .m2-visible-settings-toggles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.m2-visible-toggle{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:10px;display:flex;align-items:center;gap:8px;color:#f0f6fc;font-size:13px;font-weight:800}.m2-visible-toggle input{accent-color:#00ffc2}
+      .m2-visible-settings-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.m2-visible-settings-actions button,.m2-visible-settings-open{border:1px solid #30363d;border-radius:14px;background:#21262d;color:#f0f6fc;padding:11px;font-weight:900}.m2-visible-settings-actions .green,.m2-visible-settings-open.green{background:linear-gradient(135deg,#00ffc2,#58a6ff);color:#06111b;border:0}.m2-visible-settings-actions .gold{background:#f9c74f;color:#151000;border:0}.m2-visible-settings-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}.m2-visible-settings-mini div{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:10px}.m2-visible-settings-mini span{display:block;color:#8b949e;font-size:10px;text-transform:uppercase;font-weight:900}.m2-visible-settings-mini b{display:block;color:#00ffc2;font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.m2-visible-settings-shortcut{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:8px 0}.m2-visible-settings-shortcut button{font-size:12px;padding:9px 11px}
+      @media(max-width:720px){.m2-visible-settings-grid,.m2-visible-settings-toggles,.m2-visible-settings-actions{grid-template-columns:1fr}.m2-visible-settings-mini{grid-template-columns:repeat(2,1fr)}}`;
+    document.head.appendChild(css);
+  }
+  function cardHtml(){
+    const v=readExisting();
+    return `<h3>⚙️ CRM Settings Center</h3><p>This is the new settings area. It stays inside the Settings tab, does not block other sections, and saves your CRM branding/contact/setup info.</p>
+      <div class="m2-visible-settings-mini"><div><span>Business</span><b>${esc(v.businessName)}</b></div><div><span>Plan</span><b>${esc(v.plan)}</b></div><div><span>Territory</span><b>${esc(v.mainTerritory||'Not set')}</b></div><div><span>Plan Details</span><b>${esc(planDetails(v.plan))}</b></div></div>
+      <div class="m2-visible-settings-grid">
+        <label>Business Name<input id="m2v-business" value="${esc(v.businessName)}"></label>
+        <label>Owner Name<input id="m2v-owner" value="${esc(v.ownerName)}"></label>
+        <label>Support Email<input id="m2v-email" value="${esc(v.supportEmail)}"></label>
+        <label>Support Phone<input id="m2v-phone" value="${esc(v.supportPhone)}"></label>
+        <label>Website<input id="m2v-website" value="${esc(v.website)}"></label>
+        <label>Booking Link<input id="m2v-booking" value="${esc(v.bookingLink)}"></label>
+        <label>Main Territory<input id="m2v-territory" value="${esc(v.mainTerritory)}"></label>
+        <label>Default Lead Source<select id="m2v-source"><option ${v.defaultLeadSource==='Field / Door Knock'?'selected':''}>Field / Door Knock</option><option ${v.defaultLeadSource==='CSV Import'?'selected':''}>CSV Import</option><option ${v.defaultLeadSource==='Facebook Lead'?'selected':''}>Facebook Lead</option><option ${v.defaultLeadSource==='Referral'?'selected':''}>Referral</option><option ${v.defaultLeadSource==='Purchased Lead'?'selected':''}>Purchased Lead</option></select></label>
+        <label>Default Agent View<select id="m2v-agentview"><option ${v.defaultAgentView==='Assigned Leads'?'selected':''}>Assigned Leads</option><option ${v.defaultAgentView==='Map First'?'selected':''}>Map First</option><option ${v.defaultAgentView==='Rep Mode'?'selected':''}>Rep Mode</option><option ${v.defaultAgentView==='Follow-Ups'?'selected':''}>Follow-Ups</option></select></label>
+        <label>Plan<select id="m2v-plan"><option ${v.plan==='Trial'?'selected':''}>Trial</option><option ${v.plan==='Starter'?'selected':''}>Starter</option><option ${v.plan==='Growth'?'selected':''}>Growth</option><option ${v.plan==='Office'?'selected':''}>Office</option></select></label>
+      </div>
+      <div class="m2-visible-settings-toggles">
+        <label class="m2-visible-toggle"><input type="checkbox" id="m2v-autosync" ${v.autoSyncReminder?'checked':''}> Auto-sync reminder</label>
+        <label class="m2-visible-toggle"><input type="checkbox" id="m2v-backup" ${v.backupReminder?'checked':''}> Backup reminder</label>
+        <label class="m2-visible-toggle"><input type="checkbox" id="m2v-demo" ${v.showDemoTools?'checked':''}> Show demo tools</label>
+        <label class="m2-visible-toggle"><input type="checkbox" id="m2v-admin" ${v.showAdminTools?'checked':''}> Show admin tools</label>
+      </div>
+      <div class="m2-visible-settings-actions"><button class="green" data-m2-visible-settings="save">Save Settings</button><button class="gold" data-m2-visible-settings="copy">Copy Settings Summary</button><button data-m2-visible-settings="reset">Reset Settings</button></div>`;
+  }
+  function ensureCard(){
+    ensureStyles();
+    const stats=document.getElementById('stats-view'); if(!stats) return;
+    let card=document.getElementById(CARD_ID);
+    if(!card){ card=document.createElement('div'); card.id=CARD_ID; card.dataset.m2StatsGroup='settings';
+      const toolbar=document.getElementById('m2-stats-toolbar');
+      const existing=document.querySelector('[data-m2-stats-group="settings"]');
+      if(existing && existing.parentNode) existing.parentNode.insertBefore(card, existing);
+      else if(toolbar && toolbar.nextSibling) stats.insertBefore(card, toolbar.nextSibling);
+      else stats.appendChild(card);
+    }
+    card.innerHTML=cardHtml();
+    addShortcut();
+  }
+  function addShortcut(){
+    const stats=document.getElementById('stats-view'); if(!stats) return;
+    let shortcut=document.getElementById('m2-visible-settings-shortcut');
+    if(!shortcut){ shortcut=document.createElement('div'); shortcut.id='m2-visible-settings-shortcut'; shortcut.className='m2-visible-settings-shortcut';
+      const toolbar=document.getElementById('m2-stats-toolbar');
+      if(toolbar && toolbar.parentNode) toolbar.parentNode.insertBefore(shortcut, toolbar.nextSibling); else stats.insertBefore(shortcut, stats.firstChild);
+    }
+    shortcut.innerHTML='<button class="m2-visible-settings-open green" data-m2-visible-settings="open">⚙️ Open Settings Center</button>';
+  }
+  function openSettings(){
+    ensureCard();
+    try{ if(typeof m2SetStatsView==='function') m2SetStatsView('settings'); else localStorage.setItem('m2_stats_clean_view_v1','settings'); }catch(e){}
+    try{ if(typeof applyM2StatsPolish==='function') applyM2StatsPolish(); }catch(e){}
+    setTimeout(()=>document.getElementById(CARD_ID)?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }
+  function collect(){ return {
+    businessName:document.getElementById('m2v-business')?.value.trim()||'M2 Energy CRM', ownerName:document.getElementById('m2v-owner')?.value.trim()||'', supportEmail:document.getElementById('m2v-email')?.value.trim()||'', supportPhone:document.getElementById('m2v-phone')?.value.trim()||'', website:document.getElementById('m2v-website')?.value.trim()||'', bookingLink:document.getElementById('m2v-booking')?.value.trim()||'', mainTerritory:document.getElementById('m2v-territory')?.value.trim()||'', defaultLeadSource:document.getElementById('m2v-source')?.value||'Field / Door Knock', defaultAgentView:document.getElementById('m2v-agentview')?.value||'Assigned Leads', plan:document.getElementById('m2v-plan')?.value||'Trial', autoSyncReminder:!!document.getElementById('m2v-autosync')?.checked, backupReminder:!!document.getElementById('m2v-backup')?.checked, showDemoTools:!!document.getElementById('m2v-demo')?.checked, showAdminTools:!!document.getElementById('m2v-admin')?.checked } }
+  function copySummary(){ const v=readExisting(); const txt=`M2 CRM Settings\nBusiness: ${v.businessName}\nOwner: ${v.ownerName||'Not set'}\nEmail: ${v.supportEmail||'Not set'}\nPhone: ${v.supportPhone||'Not set'}\nWebsite: ${v.website||'Not set'}\nBooking: ${v.bookingLink||'Not set'}\nTerritory: ${v.mainTerritory||'Not set'}\nPlan: ${v.plan} (${planDetails(v.plan)})`; navigator.clipboard?.writeText(txt).then(()=>toast('✓ Settings summary copied','success'),()=>toast(txt,'info')); }
+  document.addEventListener('click',function(e){ const btn=e.target.closest('[data-m2-visible-settings]'); if(!btn) return; e.preventDefault(); e.stopPropagation(); const a=btn.dataset.m2VisibleSettings; try{ if(a==='open') openSettings(); else if(a==='save'){ const v=collect(); save(v); toast('✓ Settings saved','success'); ensureCard(); try{renderSettings?.(); renderStats?.();}catch(_){}} else if(a==='copy') copySummary(); else if(a==='reset'){ if(confirm('Reset the new CRM Settings Center fields?')){ localStorage.removeItem(LS); ensureCard(); toast('Settings reset','info'); } } }catch(err){ console.error(err); toast('Settings error: '+err.message,'error'); } },true);
+  const oldRender=window.renderStats || (typeof renderStats==='function'?renderStats:null);
+  if(oldRender){ window.renderStats=function(){ oldRender.apply(this,arguments); setTimeout(ensureCard,60); }; try{ renderStats=window.renderStats; }catch(e){} }
+  window.addEventListener('load',()=>setTimeout(ensureCard,900));
+  window.m2OpenVisibleSettingsCenter=openSettings;
+})();
+</script>
+
+
+<!-- M2 Stability + Smoothness Upgrade v1 -->
+<style>
+  #m2-loading-screen{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 20% 15%,rgba(40,255,190,.18),transparent 30%),linear-gradient(135deg,#050b16,#071d2a 58%,#031018);display:flex;align-items:center;justify-content:center;color:#eaffff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:opacity .35s ease,visibility .35s ease}
+  #m2-loading-screen.m2-loaded{opacity:0;visibility:hidden;pointer-events:none}.m2-loader-card{width:min(92vw,430px);border:1px solid rgba(95,255,218,.25);border-radius:28px;background:rgba(6,18,31,.78);box-shadow:0 24px 70px rgba(0,0,0,.45);padding:24px}.m2-loader-title{font-size:24px;font-weight:900;margin-bottom:8px}.m2-loader-sub{font-size:13px;color:#9eece2;margin-bottom:16px}.m2-loader-bar{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}.m2-loader-bar span{display:block;width:58%;height:100%;border-radius:999px;background:linear-gradient(90deg,#50ffd1,#ffc629);animation:m2Load 1.2s ease-in-out infinite alternate}@keyframes m2Load{to{width:96%}}
+  .m2-stability-panel,.m2-safe-panel{border:1px solid rgba(95,255,218,.18);background:linear-gradient(180deg,rgba(8,24,39,.98),rgba(5,14,25,.98));border-radius:22px;padding:16px;margin:14px 0;box-shadow:0 12px 34px rgba(0,0,0,.24)}.m2-stability-panel h3,.m2-safe-panel h3{margin:0 0 6px;font-size:20px}.m2-stability-panel p{color:#9fb7c1;margin:0 0 12px}.m2-stability-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px}.m2-stability-metric{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px}.m2-stability-metric .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9fb7c1}.m2-stability-metric .v{font-size:19px;font-weight:900;margin-top:4px}.m2-health-good{color:#50ffd1}.m2-health-warn{color:#ffc629}.m2-health-bad{color:#ff6b6b}.m2-stability-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.m2-stability-actions button,.m2-safe-panel button{border:0;border-radius:14px;padding:10px 12px;font-weight:800;color:#06131a;background:#10263a}.m2-stability-actions .green{background:#50ffd1;color:#041317}.m2-stability-actions .gold{background:#ffc629;color:#2b1d00}.m2-stability-actions .red{background:#ff6b6b;color:#240000}.m2-stability-actions .blue{background:#65a8ff;color:#03121f}
+  #m2-safe-mode{position:fixed;inset:0;z-index:99990;background:#050b16;color:#eaffff;overflow:auto;padding:18px;display:none}#m2-safe-mode.open{display:block}.m2-safe-wrap{max-width:860px;margin:0 auto}.m2-safe-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:8px 0 18px}.m2-safe-title h1{font-size:28px;margin:0}.m2-safe-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.m2-safe-item{border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:14px;background:rgba(255,255,255,.05)}
+  .m2-sync-preview{position:fixed;inset:0;z-index:99988;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px}.m2-sync-preview.open{display:flex}.m2-sync-card{width:min(92vw,520px);max-height:86vh;overflow:auto;background:#071625;color:#eaffff;border:1px solid rgba(95,255,218,.22);border-radius:24px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.45)}.m2-sync-card h3{margin:0 0 8px}.m2-sync-card .row{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 0;color:#cfe}.m2-sync-card .row b{color:#fff}.m2-sync-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.m2-sync-actions button{border:0;border-radius:14px;padding:10px 12px;font-weight:900;background:#10263a;color:#eaffff}.m2-sync-actions .green{background:#50ffd1;color:#041317}.m2-sync-actions .red{background:#ff6b6b;color:#240000}
+  .lead-sheet,.bottom-sheet,[data-lead-sheet],#lead-sheet{will-change:transform;transition:transform .22s ease,opacity .2s ease}.lead-sheet.closing,.bottom-sheet.closing{opacity:.6}.m2-pressable:active,button:active{transform:translateY(1px) scale(.99)}
+  @media(max-width:640px){.m2-stability-grid{grid-template-columns:repeat(2,1fr)}.m2-stability-panel{padding:13px;border-radius:18px}.m2-stability-actions button{flex:1 1 46%}}
+</style>
+<script>
+(function(){
+  'use strict';
+  const UPGRADE='stability_smoothness_v1';
+  const LS_BACKUP='m2_auto_backup_latest_v1';
+  const LS_HEALTH='m2_crm_health_last_v1';
+  const LS_SAFE='m2_safe_mode_reason_v1';
+  const LS_SYNC='m2_sync_health_v1';
+  function $(id){return document.getElementById(id)}
+  function now(){return new Date().toISOString()}
+  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function toast(msg,type){try{ if(typeof showToast==='function') showToast(msg,type||'info'); else alert(msg); }catch(e){ console.log(msg); }}
+  function getLeads(){try{return (window.state&&Array.isArray(state.leads))?state.leads:JSON.parse(localStorage.getItem('m2_crm_state')||localStorage.getItem('nyc_solar_crm_v3')||'{}').leads||[]}catch(e){return[]}}
+  function getAgents(){try{ if(typeof getAccountAccess==='function') return (getAccountAccess().agents||[]); const a=JSON.parse(localStorage.getItem('m2_account_access_v1')||'{}'); return a.agents||[] }catch(e){return[]}}
+  function getSession(){try{ if(typeof getCurrentSession==='function') return getCurrentSession(); return JSON.parse(localStorage.getItem('m2_current_session_v1')||'null') }catch(e){return null}}
+  function getSettings(){try{return JSON.parse(localStorage.getItem('m2_visible_settings_v1')||localStorage.getItem('m2_crm_settings')||'{}')}catch(e){return {}}}
+  function backup(reason){
+    try{
+      const payload={version:UPGRADE,reason:reason||'manual',created_at:now(),leads:getLeads(),agents:getAgents(),settings:getSettings(),session:getSession(),raw:{account:localStorage.getItem('m2_account_access_v1'),crm:localStorage.getItem('nyc_solar_crm_v3')}};
+      localStorage.setItem(LS_BACKUP,JSON.stringify(payload));
+      localStorage.setItem('m2_last_auto_backup_time_v1',payload.created_at);
+      return payload;
+    }catch(e){console.error(e); toast('Auto-backup failed: '+e.message,'error'); return null;}
+  }
+  function exportBackup(){
+    const payload=backup('export_full_backup');
+    if(!payload) return;
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='m2-crm-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    toast('✓ Full backup exported','success');
+  }
+  function restoreBackup(){
+    try{
+      const raw=localStorage.getItem(LS_BACKUP); if(!raw) return toast('No auto-backup found','warning');
+      if(!confirm('Restore the last auto-backup? This may replace current local leads/settings.')) return;
+      const b=JSON.parse(raw);
+      if(b.raw&&b.raw.crm) localStorage.setItem('nyc_solar_crm_v3',b.raw.crm);
+      else if(b.leads&&window.state){state.leads=b.leads; try{saveState()}catch(e){}}
+      if(b.raw&&b.raw.account) localStorage.setItem('m2_account_access_v1',b.raw.account);
+      if(b.settings) localStorage.setItem('m2_visible_settings_v1',JSON.stringify(b.settings));
+      try{ if(window.state&&b.leads) state.leads=b.leads; renderMarkers?.(); renderFilterBar?.(); renderList?.(); renderStats?.(); }catch(e){}
+      toast('✓ Last auto-backup restored','success');
+    }catch(e){console.error(e); toast('Restore failed: '+e.message,'error')}
+  }
+  function runHealth(){
+    const leads=getLeads(), agents=getAgents(), sess=getSession();
+    const checks=[
+      ['Local Storage', testLocalStorage()], ['Leads Loaded', leads.length>0], ['Agents Loaded', agents.length>=0], ['Session Active', !!sess], ['Map Loaded', !!window.map || !!window.crmMap], ['Backup Available', !!localStorage.getItem(LS_BACKUP)], ['Buttons System', true], ['Demo Mode', localStorage.getItem('m2_demo_mode_v1')==='1'?'on':'off']
+    ];
+    const health={created_at:now(),checks,leadCount:leads.length,agentCount:agents.length,session:sess}; localStorage.setItem(LS_HEALTH,JSON.stringify(health));
+    renderStabilityPanels();
+    const bad=checks.filter(c=>c[1]===false).length;
+    toast(bad?`Health check finished — ${bad} item(s) need attention`:'✓ Health check passed','success');
+  }
+  function testLocalStorage(){try{localStorage.setItem('__m2_test','1'); localStorage.removeItem('__m2_test'); return true}catch(e){return false}}
+  function syncHealth(){try{return JSON.parse(localStorage.getItem(LS_SYNC)||'{}')}catch(e){return {}}}
+  function setSyncMark(k){const s=syncHealth(); s[k]=now(); localStorage.setItem(LS_SYNC,JSON.stringify(s));}
+  function formatDate(s){if(!s)return'Never'; try{return new Date(s).toLocaleString()}catch(e){return s}}
+  function healthSummary(){
+    const leads=getLeads(), agents=getAgents(), sess=getSession(), sync=syncHealth();
+    return {leads,agents,sess,sync,lastBackup:localStorage.getItem('m2_last_auto_backup_time_v1'),demo:localStorage.getItem('m2_demo_mode_v1')==='1'};
+  }
+  function cardHtml(){
+    const h=healthSummary(); const role=h.sess?.role||'No session';
+    const connected=!!(window.supabaseClient||window.sbClient||window.supabase);
+    return `<div class="m2-stability-panel" id="m2-stability-center" data-m2-stats-group="admin"><h3>🛡️ Stability + Smoothness Center</h3><p>Run safety checks, protect data, preview syncs, and recover with Safe Mode.</p><div class="m2-stability-grid"><div class="m2-stability-metric"><div class="k">Local leads</div><div class="v">${h.leads.length}</div></div><div class="m2-stability-metric"><div class="k">Agents</div><div class="v">${h.agents.length}</div></div><div class="m2-stability-metric"><div class="k">Session</div><div class="v ${h.sess?'m2-health-good':'m2-health-warn'}" style="font-size:15px">${esc(role)}</div></div><div class="m2-stability-metric"><div class="k">Cloud</div><div class="v ${connected?'m2-health-good':'m2-health-warn'}" style="font-size:15px">${connected?'Detected':'Preview'}</div></div><div class="m2-stability-metric"><div class="k">Last backup</div><div class="v ${h.lastBackup?'m2-health-good':'m2-health-warn'}" style="font-size:13px">${esc(formatDate(h.lastBackup))}</div></div><div class="m2-stability-metric"><div class="k">Demo mode</div><div class="v ${h.demo?'m2-health-warn':'m2-health-good'}" style="font-size:16px">${h.demo?'On':'Off'}</div></div></div><div class="m2-stability-actions"><button class="green" data-m2-stability="health">Run CRM Health Check</button><button class="gold" data-m2-stability="backup">Export Protected Backup</button><button data-m2-stability="restore">Restore Auto-Backup</button><button class="blue" data-m2-stability="sync-preview">Preview Cloud Sync</button><button class="red" data-m2-stability="safe">Open Safe Mode</button></div></div>`;
+  }
+  function smoothHtml(){
+    return `<div class="m2-stability-panel" id="m2-smoothness-center" data-m2-stats-group="settings"><h3>✨ Smoothness Controls</h3><p>Small app-like behaviors for field reps: cleaner menus, smoother lead sheet, and safer defaults.</p><div class="m2-stability-grid"><div class="m2-stability-metric"><div class="k">Menu behavior</div><div class="v m2-health-good" style="font-size:15px">Auto-close</div></div><div class="m2-stability-metric"><div class="k">Lead sheet</div><div class="v m2-health-good" style="font-size:15px">Clean close</div></div><div class="m2-stability-metric"><div class="k">Agent default</div><div class="v m2-health-good" style="font-size:15px">Rep Mode</div></div><div class="m2-stability-metric"><div class="k">Risk actions</div><div class="v m2-health-good" style="font-size:15px">Auto-backup</div></div></div><div class="m2-stability-actions"><button class="green" data-m2-stability="rep-mode">Open Rep Mode</button><button data-m2-stability="fix-menus">Reset Menus</button><button data-m2-stability="clear-overlays">Clear Stuck Popups</button></div></div>`;
+  }
+  function renderStabilityPanels(){
+    const stats=document.getElementById('stats-view')||document.querySelector('[data-view="stats"]')||document.querySelector('.stats-view'); if(!stats) return;
+    let admin=document.getElementById('m2-stability-center'); if(!admin){admin=document.createElement('div'); admin.id='m2-stability-center'; admin.dataset.m2StatsGroup='admin'; stats.appendChild(admin)} admin.outerHTML=cardHtml();
+    let smooth=document.getElementById('m2-smoothness-center'); if(!smooth){smooth=document.createElement('div'); smooth.id='m2-smoothness-center'; smooth.dataset.m2StatsGroup='settings'; stats.appendChild(smooth)} smooth.outerHTML=smoothHtml();
+  }
+  function openSafeMode(reason){
+    if(reason) localStorage.setItem(LS_SAFE,reason);
+    let el=$('m2-safe-mode'); if(!el){el=document.createElement('div'); el.id='m2-safe-mode'; document.body.appendChild(el)}
+    const h=healthSummary();
+    el.innerHTML=`<div class="m2-safe-wrap"><div class="m2-safe-title"><div><h1>🛟 M2 CRM Safe Mode</h1><p>Recovery screen for backups, settings, and basic navigation. Reason: ${esc(localStorage.getItem(LS_SAFE)||'manual')}</p></div><button data-m2-stability="exit-safe">Exit Safe Mode</button></div><div class="m2-safe-list"><div class="m2-safe-item"><b>Leads</b><p>${h.leads.length} local leads detected.</p><button data-m2-stability="goto-leads">Open Leads</button></div><div class="m2-safe-item"><b>Map</b><p>Return to the field map.</p><button data-m2-stability="goto-map">Open Map</button></div><div class="m2-safe-item"><b>Backup</b><p>Export or restore your latest protected backup.</p><button data-m2-stability="backup">Export Backup</button> <button data-m2-stability="restore">Restore</button></div><div class="m2-safe-item"><b>Settings</b><p>Open the settings section without broken overlays.</p><button data-m2-stability="goto-settings">Open Settings</button></div><div class="m2-safe-item"><b>Clear stuck UI</b><p>Remove blocking popups/overlays.</p><button data-m2-stability="clear-overlays">Clear Popups</button></div></div></div>`;
+    el.classList.add('open');
+  }
+  function closeSafeMode(){const el=$('m2-safe-mode'); if(el) el.classList.remove('open')}
+  function clearOverlays(){
+    document.querySelectorAll('.m2-sync-preview.open,.modal.open,.popup.open,.overlay.open,.sheet-backdrop.open').forEach(el=>el.classList.remove('open'));
+    document.querySelectorAll('[style*="pointer-events: none"]').forEach(el=>{try{el.style.pointerEvents=''}catch(e){}});
+    toast('✓ Cleared stuck popups/overlays','success');
+  }
+  function syncPreview(){
+    backup('before_sync_preview');
+    let el=$('m2-sync-preview'); if(!el){el=document.createElement('div'); el.id='m2-sync-preview'; el.className='m2-sync-preview'; document.body.appendChild(el)}
+    const h=healthSummary();
+    el.innerHTML=`<div class="m2-sync-card"><h3>☁️ Safe Cloud Sync Preview</h3><p style="color:#9fb7c1">Preview counts before any cloud action. This protects you from overwriting data by accident.</p><div class="row"><span>Local leads</span><b>${h.leads.length}</b></div><div class="row"><span>Local agents</span><b>${h.agents.length}</b></div><div class="row"><span>Last lead sync</span><b>${esc(formatDate(h.sync.lastLeadSync))}</b></div><div class="row"><span>Last agent sync</span><b>${esc(formatDate(h.sync.lastAgentSync))}</b></div><div class="row"><span>Last master sync</span><b>${esc(formatDate(h.sync.lastMasterSync))}</b></div><div class="row"><span>Protected backup</span><b>${esc(formatDate(h.lastBackup))}</b></div><div class="m2-sync-actions"><button class="green" data-m2-stability="confirm-sync-up">Backup + Sync Leads Up</button><button data-m2-stability="confirm-load-cloud">Backup + Load Cloud Leads</button><button data-m2-stability="backup">Export Backup First</button><button class="red" data-m2-stability="close-sync-preview">Close</button></div></div>`;
+    el.classList.add('open');
+  }
+  function closeSyncPreview(){const el=$('m2-sync-preview'); if(el) el.classList.remove('open')}
+  function tryAction(name,args){
+    const fn=window[name] || (typeof globalThis!=='undefined'?globalThis[name]:null);
+    if(typeof fn==='function'){return fn.apply(window,args||[])}
+    try{ if(name==='switchView' && typeof switchView==='function') return switchView.apply(window,args||[])}catch(e){}
+    toast('Action not available yet: '+name,'warning');
+  }
+  function goto(tab){
+    if(tab==='map'||tab==='leads'||tab==='stats') tryAction('switchView',[tab]);
+    if(tab==='settings'){ tryAction('switchView',['stats']); setTimeout(()=>{try{ if(typeof m2SetStatsView==='function') m2SetStatsView('settings'); else if(typeof showStatsTab==='function') showStatsTab('settings'); renderStats?.(); }catch(e){}},80); }
+  }
+  function openRepMode(){ if(typeof openRepMode==='function') return window.openRepMode(); const b=document.querySelector('[data-m2-rep-mode], [data-action="rep-mode"], [data-m2-field-tool="rep-mode"]'); if(b) b.click(); else toast('Rep Mode is not available on this version yet','warning'); }
+  function fixMenus(){
+    localStorage.setItem('m2_stats_menu_open_v1','0');
+    document.querySelectorAll('.open,.active-menu,.show-menu').forEach(el=>{ if(!el.closest('#lead-sheet') && !el.closest('.lead-sheet')) el.classList.remove('open','active-menu','show-menu') });
+    try{renderStats?.()}catch(e){}
+    toast('✓ Menus reset','success');
+  }
+  function route(action,btn){
+    switch(action){
+      case 'health': return runHealth(); case 'backup': return exportBackup(); case 'restore': return restoreBackup(); case 'safe': return openSafeMode('manual'); case 'exit-safe': return closeSafeMode(); case 'sync-preview': return syncPreview(); case 'close-sync-preview': return closeSyncPreview(); case 'clear-overlays': return clearOverlays(); case 'fix-menus': return fixMenus(); case 'rep-mode': return openRepMode();
+      case 'goto-leads': closeSafeMode(); return goto('leads'); case 'goto-map': closeSafeMode(); return goto('map'); case 'goto-settings': closeSafeMode(); return goto('settings');
+      case 'confirm-sync-up': backup('before_sync_leads_up'); setSyncMark('lastLeadSync'); closeSyncPreview(); return tryAction('pushLeadsToCloud',[]);
+      case 'confirm-load-cloud': backup('before_load_cloud_leads'); setSyncMark('lastLeadSync'); closeSyncPreview(); return tryAction('pullLeadsFromCloud',[]);
+      default: toast('Unknown stability action: '+action,'warning');
+    }
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('[data-m2-stability]'); if(!btn) return;
+    e.preventDefault(); e.stopPropagation();
+    try{ route(btn.dataset.m2Stability,btn); }catch(err){console.error(err); toast('Button error: '+err.message,'error'); openSafeMode('button-error');}
+  },true);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeSyncPreview(); closeSafeMode(); clearOverlays();}});
+  function installLoading(){
+    if($('m2-loading-screen')) return;
+    const el=document.createElement('div'); el.id='m2-loading-screen'; el.innerHTML=`<div class="m2-loader-card"><div class="m2-loader-title">Loading M2 Energy CRM...</div><div class="m2-loader-sub">Checking leads • session • map • backup protection</div><div class="m2-loader-bar"><span></span></div></div>`; document.body.appendChild(el);
+    setTimeout(()=>el.classList.add('m2-loaded'),900); setTimeout(()=>el.remove(),1500);
+  }
+  function wrapRisky(){
+    const risky=['importBackup','importFullBackup','loadDemoMode','loadPremiumDemo','clearDemoMode','pullLeadsFromCloud','pushLeadsToCloud','bulkAssignLeads','assignVisibleLeadsToAgent','assignUnassignedLeadsToAgent'];
+    risky.forEach(name=>{try{const fn=window[name]; if(typeof fn==='function'&&!fn.__m2Wrapped){ const w=function(){backup('before_'+name); return fn.apply(this,arguments)}; w.__m2Wrapped=true; window[name]=w; }}catch(e){}});
+  }
+  function patchRender(){
+    const old=window.renderStats || (typeof renderStats==='function'?renderStats:null);
+    if(old && !old.__m2StabilityWrapped){
+      const wrapped=function(){ const r=old.apply(this,arguments); setTimeout(renderStabilityPanels,80); return r; };
+      wrapped.__m2StabilityWrapped=true; window.renderStats=wrapped; try{renderStats=wrapped}catch(e){}
+    }
+  }
+  function defaultAgentRepMode(){
+    try{const s=getSession(); if(s&&s.role==='agent'&&!sessionStorage.getItem('m2_agent_rep_mode_prompted')){sessionStorage.setItem('m2_agent_rep_mode_prompted','1'); setTimeout(()=>{toast('Agent view ready — Rep Mode recommended','info'); openRepMode();},650)}}catch(e){}
+  }
+  window.m2RunHealthCheck=runHealth; window.m2OpenSafeMode=openSafeMode; window.m2ExportProtectedBackup=exportBackup;
+  window.addEventListener('error',function(e){try{toast('App error caught: '+(e.message||'check console'),'error'); localStorage.setItem(LS_SAFE,'runtime-error')}catch(_){}});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  function init(){installLoading(); backup('app_start'); wrapRisky(); patchRender(); setTimeout(()=>{renderStabilityPanels(); defaultAgentRepMode();},1000); setInterval(wrapRisky,2500);}
 })();
 </script>
 
